@@ -24,7 +24,7 @@ FileOpenOrder/
 *.vcxproj
 *.vcxproj.filters
 
-# Rider
+# Rider 
 .idea/
 *.sln.DotSettings.user
 
