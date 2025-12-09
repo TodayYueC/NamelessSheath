@@ -22,9 +22,52 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	UFUNCTION(BlueprintCallable,Category="MyFunction")
-	void MyFunction();
 	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="MyInt")
-	int MyA = 0;
+	UPROPERTY(VisibleAnywhere,Category="Cube")
+	UStaticMeshComponent* Cube;
+	
+	UPROPERTY(EditAnywhere,Category="Force")
+	FVector Force;
+	UPROPERTY(EditAnywhere,Category="Force")
+	FVector TForce;
+	
+	UPROPERTY(EditAnywhere,Category="Movement")
+	FVector Movement;
+	UPROPERTY(EditAnywhere,Category="Rotation")
+	FRotator Rotation;
+	
+	UPROPERTY(EditAnywhere,Category="Movement")
+	FVector MoveSpeed;
+	UPROPERTY(EditAnywhere,Category="Rotation")
+	FRotator RotateSpeed;
+	
 };
+
+
+
+
+
+
+// UFUNCTION(BlueprintCallable,Category="MyFunction")
+// void MyFunction();
+//
+// UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="MyInt",meta =(ClampMin = 0,ClampMax = 5,UIMin = 1,UIMax = 4))
+// int MyReadWrite;
+//
+// UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="MyInt",meta =(ClampMin = 0,ClampMax = 5))
+// int MyReadOnly;
+//
+// UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category="MyInt")
+// int MyDefaultsOnly;
+//
+// UPROPERTY(EditInstanceOnly,BlueprintReadWrite,Category="MyInt")
+// int MyInstanceOnly;
+//
+// UPROPERTY(VisibleAnywhere,BlueprintReadWrite,Category="MyInt")
+// int MyVisibleAnywhere;
+//
+// UPROPERTY(VisibleDefaultsOnly,BlueprintReadWrite,Category="MyInt")
+// int MyVisibleDefaults;
+//
+// UPROPERTY(VisibleInstanceOnly,BlueprintReadWrite,Category="MyInt")
+// int MyVisibleInstance;
