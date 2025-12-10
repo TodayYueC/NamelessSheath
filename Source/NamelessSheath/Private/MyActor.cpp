@@ -12,6 +12,24 @@ AMyActor::AMyActor()
 	
 	Cube = CreateDefaultSubobject <UStaticMeshComponent>(TEXT("Cube"));
 	RootComponent = Cube;
+	// Cube1 = CreateDefaultSubobject <UStaticMeshComponent>(TEXT("Cube99"));
+	// Cube1->SetupAttachment(Cube);
+	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	SphereComponentMin = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponentMin"));
+	SphereComponent->SetupAttachment(Cube);
+	SphereComponent->SetSphereRadius(192);
+	SphereComponentMin->SetupAttachment(Cube);
+	SphereComponentMin->SetSphereRadius(96);
+	
+	SphereComponent->SetCollisionProfileName(TEXT("Trigger"));
+	SphereComponent->SetGenerateOverlapEvents(true);
+	
+	SphereComponentMin->SetCollisionProfileName(TEXT("BlockAll"));
+	SphereComponentMin->SetNotifyRigidBodyCollision(true);
+	
+	SphereComponent->OnComponentBeginOverlap.AddDynamic(this,&AMyActor::OnBeginOverlap);
+	this->OnOverlap.AddDynamic(this,&AMyActor::SayOverlap);
+	SphereComponentMin->OnComponentHit.AddDynamic(this,&AMyActor::OnHit);
 	
 	Force = FVector(0.0f, 0.0f, 0.0f);
 	TForce = FVector(0.0f, 0.0f, 0.0f);
@@ -55,6 +73,39 @@ void AMyActor::Tick(float DeltaTime)
 	
 	 // UE_LOG(LogTemp, Warning, TEXT("Hello World from MyActor!"));
 }
+
+void AMyActor::SayOverlap(FString MyString)
+{
+	
+	GEngine->AddOnScreenDebugMessage(2,3.0f,FColor::Blue,MyString);
+}
+
+void AMyActor::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+                              int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{	
+	if (OtherActor && (OtherActor != this) && OtherComp)
+	{
+		GEngine->AddOnScreenDebugMessage(-1,3.0f,FColor::Green,TEXT("重叠对象：") + OtherActor->GetName());
+	
+		FString MyString= TEXT("重叠事件广播");
+		if (OnOverlap.IsBound())
+		{
+			OnOverlap.Broadcast(MyString);
+		}
+		GEngine->AddOnScreenDebugMessage(1,3.0f,FColor::Red,TEXT("重叠开始！"));
+	}
+}
+
+void AMyActor::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor && (OtherActor != this) && OtherComp)
+	{
+		GEngine->AddOnScreenDebugMessage(-1,3.0f,FColor::Yellow,TEXT("碰撞对象：") + OtherActor->GetName());
+		GEngine->AddOnScreenDebugMessage(-1,3.0f,FColor::Cyan,TEXT("碰撞发生！"));
+	}
+}
+
 
 // void AMyActor::MyFunction()
 // {

@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/SphereComponent.h"
 #include "MyActor.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOverlap,FString,MyString);
 
 UCLASS()
 class NAMELESSSHEATH_API AMyActor : public AActor
@@ -14,6 +17,7 @@ class NAMELESSSHEATH_API AMyActor : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AMyActor();
+	FOnOverlap OnOverlap;
 
 protected:
 	// Called when the game starts or when spawned
@@ -25,6 +29,24 @@ public:
 	
 	UPROPERTY(VisibleAnywhere,Category="Cube")
 	UStaticMeshComponent* Cube;
+	//test
+	 // UPROPERTY(EditAnywhere,Category="Cube")
+	 // UStaticMeshComponent* Cube1;
+	
+	UPROPERTY(VisibleAnywhere,Category="Cube")
+	USphereComponent* SphereComponent;
+	
+	UPROPERTY(VisibleAnywhere,Category="Cube")
+	USphereComponent* SphereComponentMin;
+	
+	UFUNCTION()
+	void SayOverlap(FString MyString);
+	
+	UFUNCTION(Category="OverLap")
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComp,AActor* OtherActor,UPrimitiveComponent* OtherComp,int32 OtherBodyIndex,bool bFromSweep,const FHitResult& SweepResult);
+	
+	UFUNCTION(Category="OnHit")
+	void OnHit(UPrimitiveComponent* HitComp,AActor* OtherActor,UPrimitiveComponent* OtherComp,FVector NormalImpulse,const FHitResult& Hit);
 	
 	UPROPERTY(EditAnywhere,Category="Force")
 	FVector Force;
@@ -41,11 +63,8 @@ public:
 	UPROPERTY(EditAnywhere,Category="Rotation")
 	FRotator RotateSpeed;
 	
+	
 };
-
-
-
-
 
 
 // UFUNCTION(BlueprintCallable,Category="MyFunction")
