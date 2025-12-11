@@ -28,16 +28,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	UPROPERTY(VisibleAnywhere,Category="Cube")
-	UStaticMeshComponent* Cube;
+	TObjectPtr<UStaticMeshComponent> Cube;
 	//test
 	 // UPROPERTY(EditAnywhere,Category="Cube")
 	 // UStaticMeshComponent* Cube1;
 	
 	UPROPERTY(VisibleAnywhere,Category="Cube")
-	USphereComponent* SphereComponent;
+	TObjectPtr<USphereComponent> SphereComponent;
 	
 	UPROPERTY(VisibleAnywhere,Category="Cube")
-	USphereComponent* SphereComponentMin;
+	TObjectPtr<USphereComponent> SphereComponentMin;
 	
 	UFUNCTION()
 	void SayOverlap(FString MyString);
