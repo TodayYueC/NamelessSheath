@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Components/SphereComponent.h"
 #include "MyActor.generated.h"
+
+class USphereComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOverlap,FString,MyString);
 

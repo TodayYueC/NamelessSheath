@@ -3,6 +3,7 @@
 
 #include "MyActor.h"
 #include "Engine/Engine.h"
+#include "Components/SphereComponent.h"
 
 // Sets default values
 AMyActor::AMyActor()
