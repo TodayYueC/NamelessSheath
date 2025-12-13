@@ -14,7 +14,7 @@ AHeroYue::AHeroYue()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it
 	PrimaryActorTick.bCanEverTick = true;
-	
+
 	//摄像机组件和弹簧臂组件的创建与设置
 	MySpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("MySpringArm"));
 	MyCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("MyCamera"));
@@ -22,7 +22,8 @@ AHeroYue::AHeroYue()
 	MyCamera->SetupAttachment(MySpringArm);
 	MySpringArm->SetRelativeRotation(FRotator(-20.0f, -13.0f, 0.0f));
 	MySpringArm->TargetArmLength = 300.0f;
-	MyCamera->SetRelativeLocation(FVector(0.0f, 65.0f, 0.0f));
+	MyCamera->SetRelativeLocation(FVector::ZeroVector);
+	MySpringArm->SocketOffset = FVector(0.0f, 65.0f, 30.0f);
 	MySpringArm->bUsePawnControlRotation= true;
 	MyCamera->bUsePawnControlRotation = false;
 	bUseControllerRotationYaw = false;
@@ -47,7 +48,7 @@ void AHeroYue::BeginPlay()
 		FRotator InitialRotation = MyPlayerController->GetControlRotation();
 		InitialRotation.Pitch = -20.0f;
 		Controller -> SetControlRotation(InitialRotation);
-		
+
 		if (UEnhancedInputLocalPlayerSubsystem* InputSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(MyPlayerController->GetLocalPlayer()))
 		{
 			//添加输入映射上下文
@@ -92,7 +93,7 @@ void AHeroYue::Move(const FInputActionValue& Value)
 		FVector forwardDirection = FRotationMatrix(YawRot).GetUnitAxis(EAxis::X);
 		//右方向量
 		FVector rightDirection = FRotationMatrix(YawRot).GetUnitAxis(EAxis::Y);
-	
+
 		AddMovementInput(forwardDirection,Movement.Y);
 		AddMovementInput(rightDirection,Movement.X);
 	}
@@ -101,11 +102,12 @@ void AHeroYue::Move(const FInputActionValue& Value)
 //视角函数
 void AHeroYue::Look(const FInputActionValue& Value)
 {
-	FVector2D Movement = Value.Get<FVector2D>();
-	if (Controller != nullptr)
-	{
-		AddControllerPitchInput(Movement.Y);
-		AddControllerYawInput(Movement.X);
-	}
+ 	FVector2D Movement = Value.Get<FVector2D>();
+ 	if (Controller != nullptr)
+ 	{
+ 		// 直接处理视角输入，使摄像机与控制器同步
+ 		AddControllerPitchInput(Movement.Y);
+ 		AddControllerYawInput(Movement.X);
+ 	}
 }
 
