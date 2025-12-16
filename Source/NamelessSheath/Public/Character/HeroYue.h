@@ -12,7 +12,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
-
+class AWeaponGun;
 
 UCLASS()
 class NAMELESSSHEATH_API AHeroYue : public ACharacter
@@ -33,7 +33,16 @@ public:
 	
 	UPROPERTY(EditAnywhere,Category="Input")
 	TObjectPtr<UInputAction> HeroJump;
-
+	
+	UPROPERTY(EditAnywhere,Category="Input")
+	TObjectPtr<UInputAction> HeroShot;
+	
+	UPROPERTY(EditAnywhere,Category="Weapon")
+	TSubclassOf<AWeaponGun> WeaponClass;
+	
+	UPROPERTY()
+	TObjectPtr<AWeaponGun> CurrentWeapon;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -47,6 +56,7 @@ public:
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+	void Fire(const FInputActionValue& Value);
 private:
 	UPROPERTY(VisibleAnywhere,Category="Camera",meta=(AllowPrivateAccess="true"))
 	TObjectPtr<USpringArmComponent> MySpringArm;

@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "MyActor.h"
+#include "OtherTest/MyActor.h"
 #include "Engine/Engine.h"
 #include "Components/SphereComponent.h"
 
@@ -18,9 +18,9 @@ AMyActor::AMyActor()
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponentMin = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponentMin"));
 	SphereComponent->SetupAttachment(Cube);
-	SphereComponent->SetSphereRadius(192);
+	SphereComponent->InitSphereRadius(192);
 	SphereComponentMin->SetupAttachment(Cube);
-	SphereComponentMin->SetSphereRadius(96);
+	SphereComponentMin->InitSphereRadius(96);
 	
 	SphereComponent->SetCollisionProfileName(TEXT("Trigger"));
 	SphereComponent->SetGenerateOverlapEvents(true);

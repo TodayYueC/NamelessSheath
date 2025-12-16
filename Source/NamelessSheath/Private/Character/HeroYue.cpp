@@ -1,20 +1,21 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "HeroYue.h"
+#include "Character/HeroYue.h"
 #include "GameFramework/SpringArmComponent.h"
 #include"Camera/CameraComponent.h"
 #include"Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Weapon/WeaponGun.h"
 
 // Sets default values
 AHeroYue::AHeroYue()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it
 	PrimaryActorTick.bCanEverTick = true;
-
+	
 	//摄像机组件和弹簧臂组件的创建与设置
 	MySpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("MySpringArm"));
 	MyCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("MyCamera"));
@@ -55,6 +56,48 @@ void AHeroYue::BeginPlay()
 			InputSystem->AddMappingContext(HeroIMC, 0);
 		}
 	}
+	
+	//生成武器实例
+	if (WeaponClass && !CurrentWeapon)
+	{
+		//定义归属
+		FActorSpawnParameters SpawnParms;
+		SpawnParms.Owner = this;
+		SpawnParms.Instigator = this;
+		//生成位置
+		FVector SpawnLocation = GetMesh()->GetSocketLocation(FName("WeaponSocket"));
+		FRotator SpawnRotation = GetMesh()->GetSocketRotation(FName("WeaponSocket"));
+		//生成
+		CurrentWeapon = GetWorld()->SpawnActor<AWeaponGun>(
+			WeaponClass,
+			SpawnLocation,
+			SpawnRotation,
+			SpawnParms
+		);
+		
+		
+		
+	}
+	//将武器附加到角色
+	if (CurrentWeapon)
+	{
+		//定义粘贴规则
+		FAttachmentTransformRules AttachRules(
+			EAttachmentRule::SnapToTarget,//位置，插槽
+			EAttachmentRule::SnapToTarget,//旋转，插槽
+			EAttachmentRule::KeepWorld,//缩放，保持原样
+			false      //不模拟物理
+		);
+		//粘贴到插槽
+		CurrentWeapon->AttachToComponent(
+			GetMesh(),
+			AttachRules,
+			FName("WeaponSocket")
+		
+		);
+		
+		
+	}
 }
 
 // Called every frame
@@ -76,6 +119,7 @@ void AHeroYue::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EI->BindAction(HeroLook,ETriggerEvent::Triggered,this,&AHeroYue::Look);
 		EI->BindAction(HeroJump,ETriggerEvent::Started,this,&AHeroYue::Jump);
 		EI->BindAction(HeroJump,ETriggerEvent::Completed,this,&AHeroYue::StopJumping);
+		EI->BindAction(HeroShot,ETriggerEvent::Started,this,&AHeroYue::Fire);
 	}
 
 }
@@ -109,5 +153,13 @@ void AHeroYue::Look(const FInputActionValue& Value)
  		AddControllerPitchInput(Movement.Y);
  		AddControllerYawInput(Movement.X);
  	}
+}
+
+void AHeroYue::Fire(const FInputActionValue& Value)
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->Fire();
+	}
 }
 
