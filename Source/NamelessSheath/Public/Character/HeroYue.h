@@ -22,6 +22,26 @@ class NAMELESSSHEATH_API AHeroYue : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AHeroYue();
+	
+	bool bIsInteract;
+	void Interact();
+	void DoInteract();
+	AActor* TargetInteractActor;
+	
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+	
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void Fire(const FInputActionValue& Value);
+	
+	float InteractionTime = 0.0f;
+	
+	//射线检测通用函数
+	UFUNCTION(BlueprintCallable,Category="LineTrace")
+	bool DoLineTrace(FHitResult& OutHit,float TraceDistance);
+	
 	UPROPERTY(EditAnywhere,Category="Input")
 	TObjectPtr<UInputMappingContext> HeroIMC;
 	
@@ -42,11 +62,6 @@ public:
 	
 	UPROPERTY()
 	TObjectPtr<AWeaponGun> CurrentWeapon;
-	
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -54,9 +69,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void Fire(const FInputActionValue& Value);
+
 private:
 	UPROPERTY(VisibleAnywhere,Category="Camera",meta=(AllowPrivateAccess="true"))
 	TObjectPtr<USpringArmComponent> MySpringArm;

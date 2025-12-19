@@ -9,6 +9,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Weapon/WeaponGun.h"
+#include "DrawDebugHelpers.h"
+#include "InteractActor/InteractActorBase.h"
+#include "Universal/InteractInterface.h"
 
 // Sets default values
 AHeroYue::AHeroYue()
@@ -26,6 +29,7 @@ AHeroYue::AHeroYue()
 	MyCamera->SetRelativeLocation(FVector::ZeroVector);
 	MySpringArm->SocketOffset = FVector(0.0f, 65.0f, 30.0f);
 	MySpringArm->bUsePawnControlRotation= true;
+	MySpringArm->bEnableCameraLag = true;
 	MyCamera->bUsePawnControlRotation = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
@@ -35,6 +39,7 @@ AHeroYue::AHeroYue()
 	GetCharacterMovement()->GravityScale = 2.0f;
 	GetCharacterMovement()->AirControl = 0.3f;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+	bIsInteract = false;
 }
 
 // Called when the game starts or when spawned
@@ -104,6 +109,17 @@ void AHeroYue::BeginPlay()
 void AHeroYue::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (bIsInteract)
+	{
+		InteractionTime += DeltaTime;
+		if (InteractionTime>=0.1f)
+		{
+			//GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Cyan,TEXT("尝试交互") );
+			Interact();
+			InteractionTime = 0.0f;
+		}
+	}
 
 }
 
@@ -121,6 +137,7 @@ void AHeroYue::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EI->BindAction(HeroJump,ETriggerEvent::Completed,this,&AHeroYue::StopJumping);
 		EI->BindAction(HeroShot,ETriggerEvent::Started,this,&AHeroYue::Fire);
 	}
+	PlayerInputComponent->BindKey(EKeys::E,IE_Pressed,this,&AHeroYue::DoInteract);
 
 }
 
@@ -157,9 +174,63 @@ void AHeroYue::Look(const FInputActionValue& Value)
 
 void AHeroYue::Fire(const FInputActionValue& Value)
 {
+	FHitResult OutHit;
+	DoLineTrace(OutHit,10000.0f);
 	if (CurrentWeapon)
 	{
-		CurrentWeapon->Fire();
+		CurrentWeapon->Fire(OutHit.Location);
 	}
+}
+
+void AHeroYue::Interact()
+{
+	FHitResult OutHit;
+	DoLineTrace(OutHit,460.0f);
+	TargetInteractActor = OutHit.GetActor();
+}
+
+void AHeroYue::DoInteract()
+{
+	if (bIsInteract == true)
+	{
+		if (AInteractActorBase* InteractActor = Cast<AInteractActorBase>(TargetInteractActor))
+		{
+			IInteractInterface::Execute_Interact(InteractActor,this);
+		}
+	}
+}
+
+
+bool AHeroYue::DoLineTrace(FHitResult& OutHit, float TraceDistance)
+{
+	//获取起点位置和方向
+	FVector StartLocation;
+	FRotator StartRotation;
+	Controller->GetPlayerViewPoint(StartLocation,StartRotation);
+	
+	//获取终点位置
+	FVector EndLocation = StartLocation + (StartRotation.Vector() * TraceDistance);
+	//设置参数过滤并发射
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this);//忽略自己
+	bool bHit = GetWorld()->LineTraceSingleByChannel(
+		OutHit,	
+		StartLocation,
+		EndLocation,
+		ECC_Visibility,
+		CollisionParams
+	);
+	//绘制调试线
+	if (bHit)
+	{
+		DrawDebugLine(GetWorld(),StartLocation,OutHit.Location,FColor::Green,false,1.0f);
+		DrawDebugSphere(GetWorld(),OutHit.Location,5.0f,12,FColor::Yellow,false,1.0f);
+	}
+	else
+	{
+		DrawDebugLine(GetWorld(),StartLocation,EndLocation,FColor::Red,false,1.0f);
+		OutHit.Location = StartLocation + (StartRotation.Vector() * TraceDistance);
+	}
+	return bHit;
 }
 

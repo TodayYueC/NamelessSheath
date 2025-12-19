@@ -36,7 +36,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 
-	void Fire();
+	void Fire(FVector TargetLocation);
 	//FORCEINLINE UStaticMeshComponent* GetWeaponMesh()  { return GunMesh; }
 
 };

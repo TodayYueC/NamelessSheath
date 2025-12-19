@@ -30,13 +30,13 @@ void AWeaponGun::Tick(float DeltaTime)
 
 }
 
-void AWeaponGun::Fire()
+void AWeaponGun::Fire(FVector TargetLocation)
 {
 	if (BulletClass && GunMesh)
 	{
 		const FName BulletSocketName("BulletSpawnLocation");
 		FVector SpawnLocation = GunMesh->GetSocketLocation(BulletSocketName);
-		FRotator SpawnRotation = GetActorRotation();
+		FRotator SpawnRotation = (TargetLocation - SpawnLocation).Rotation();
 		if (APawn* Pawn = Cast<APawn>(GetOwner()))
 		{
 			SpawnRotation = Pawn->GetController()->GetControlRotation();
