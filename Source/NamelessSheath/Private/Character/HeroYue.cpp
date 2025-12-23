@@ -12,6 +12,7 @@
 #include "DrawDebugHelpers.h"
 #include "InteractActor/InteractActorBase.h"
 #include "Universal/InteractInterface.h"
+#include "Component/HealthComponent.h"
 
 // Sets default values
 AHeroYue::AHeroYue()
@@ -40,6 +41,7 @@ AHeroYue::AHeroYue()
 	GetCharacterMovement()->AirControl = 0.3f;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 	bIsInteract = false;
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -59,6 +61,10 @@ void AHeroYue::BeginPlay()
 		{
 			//添加输入映射上下文
 			InputSystem->AddMappingContext(HeroIMC, 0);
+		}
+		if (MySpringArm)
+		{	
+			DefaultArmLength = MySpringArm->TargetArmLength;
 		}
 	}
 	
@@ -110,6 +116,19 @@ void AHeroYue::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
+	
+		Firetime+=DeltaTime;
+		if (Firetime>=0.2f)
+		{
+			Firetime = 0.0f;
+			bCanFire = true;
+		}
+		else
+		{
+			bCanFire = false;
+		}
+
+	
 	if (bIsInteract)
 	{
 		InteractionTime += DeltaTime;
@@ -121,6 +140,13 @@ void AHeroYue::Tick(float DeltaTime)
 		}
 	}
 
+	if (MySpringArm)
+	{
+		float TargetLength = bIsAiming ? AimArmLength : DefaultArmLength;
+		float NewLength = FMath::FInterpTo(MySpringArm->TargetArmLength,TargetLength,DeltaTime,FireInterpSpeed);
+		MySpringArm->TargetArmLength = NewLength;
+	}
+	
 }
 
 // Called to bind functionality to input
@@ -135,9 +161,12 @@ void AHeroYue::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EI->BindAction(HeroLook,ETriggerEvent::Triggered,this,&AHeroYue::Look);
 		EI->BindAction(HeroJump,ETriggerEvent::Started,this,&AHeroYue::Jump);
 		EI->BindAction(HeroJump,ETriggerEvent::Completed,this,&AHeroYue::StopJumping);
-		EI->BindAction(HeroShot,ETriggerEvent::Started,this,&AHeroYue::Fire);
+		EI->BindAction(HeroShot,ETriggerEvent::Started,this,&AHeroYue::StartFire);
+		EI->BindAction(HeroShot,ETriggerEvent::Triggered,this,&AHeroYue::OnFire);
+		EI->BindAction(HeroShot,ETriggerEvent::Completed,this,&AHeroYue::StopFire);
 	}
 	PlayerInputComponent->BindKey(EKeys::E,IE_Pressed,this,&AHeroYue::DoInteract);
+	PlayerInputComponent->BindKey(EKeys::Q,IE_Pressed,this,&AHeroYue::HealthCast);
 
 }
 
@@ -172,13 +201,43 @@ void AHeroYue::Look(const FInputActionValue& Value)
  	}
 }
 
-void AHeroYue::Fire(const FInputActionValue& Value)
+void AHeroYue::StartFire(const FInputActionValue& Value)
 {
-	FHitResult OutHit;
-	DoLineTrace(OutHit,10000.0f);
-	if (CurrentWeapon)
+	//进入瞄准状态
+	bIsAiming = true;
+	bUseControllerRotationYaw = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	//播放瞄准动画
+	if (MontageFire)
 	{
-		CurrentWeapon->Fire(OutHit.Location);
+		PlayAnimMontage(MontageFire, 1.0f);
+	}
+	
+}
+
+void AHeroYue::OnFire(const FInputActionValue& Value)
+{
+	if (bCanFire)
+	{
+		FHitResult OutHit;
+		DoLineTrace(OutHit,10000.0f);
+		if (CurrentWeapon)
+		{
+			CurrentWeapon->Fire(OutHit.Location);
+		}
+	}
+}
+
+void AHeroYue::StopFire(const FInputActionValue& Value)
+{
+	//退出瞄准状态
+	bIsAiming = false;
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	//退出瞄准动画
+	if (GetMesh()->GetAnimInstance())
+	{
+		GetMesh()->GetAnimInstance()->Montage_Stop(0.2f,MontageFire);
 	}
 }
 
@@ -187,6 +246,12 @@ void AHeroYue::Interact()
 	FHitResult OutHit;
 	DoLineTrace(OutHit,460.0f);
 	TargetInteractActor = OutHit.GetActor();
+
+}
+
+void AHeroYue::HealthCast()
+{
+	HealthComponent->ApplyHealthChange(-10.0f,this);
 }
 
 void AHeroYue::DoInteract()

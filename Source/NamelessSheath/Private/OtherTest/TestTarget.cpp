@@ -5,19 +5,20 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/Engine.h"
 #include "NiagaraFunctionLibrary.h"
-#include "NiagaraSystem.h"
+//#include "NiagaraSystem.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "Component/HealthComponent.h"
 
 // Sets default values
 ATestTarget::ATestTarget()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	MaxHealth = 100.0f;
 	
 	TargetMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TargetMesh"));
 	RootComponent = TargetMesh;
+	
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	
 }
 
@@ -25,7 +26,6 @@ ATestTarget::ATestTarget()
 void ATestTarget::BeginPlay()
 {
 	Super::BeginPlay();
-	CurrentHealth = MaxHealth;
 	
 }
 
@@ -36,10 +36,10 @@ float ATestTarget::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 	
 	if (ActualDamage > 0.0f)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("受到伤害!，当前剩余血量:") + FString::SanitizeFloat(CurrentHealth - ActualDamage));
-		CurrentHealth = FMath::Clamp(CurrentHealth - ActualDamage, 0.0f, MaxHealth);
+		HealthComponent->ApplyHealthChange(-ActualDamage, DamageCauser);
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("受到伤害!，当前剩余血量:") + FString::SanitizeFloat(HealthComponent->GetCurrentHealth()));
 	}
-	if (CurrentHealth <= 0.0f)
+	if (HealthComponent->GetCurrentHealth() <= 0.0f)
 	{	
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("血条清空，对象死亡!"));
 		if (ExplosionVFX)

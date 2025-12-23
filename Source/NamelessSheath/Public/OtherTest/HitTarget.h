@@ -6,6 +6,8 @@
 #include "GameFramework/Pawn.h"
 #include "HitTarget.generated.h"
 
+
+
 UCLASS()
 class NAMELESSSHEATH_API AHitTarget : public APawn
 {
@@ -25,5 +27,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	
 
 };
